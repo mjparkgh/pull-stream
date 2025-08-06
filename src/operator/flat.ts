@@ -1,11 +1,21 @@
-import { PullStream } from '../types/pull-stream.js';
+import { PullStream } from '../core/pull-stream.js';
 
 /**
- * 주어진 PullStream<T[]> 스트림을 평탄화하여 개별 요소를 반환하는 비동기 제너레이터 함수입니다.
+ * Flattens a PullStream<T[]> stream to return individual elements as an async generator function.
  *
- * @template T - 스트림에서 처리할 요소의 타입
- * @param {PullStream<T[]>} stream - T 배열을 포함하는 PullStream 스트림
- * @returns {PullStream<T>} 평탄화된 개별 요소를 포함하는 PullStream 스트림
+ * @template T Type of elements to process in the stream
+ * @param stream PullStream containing arrays of T
+ * @returns Flattened PullStream containing individual elements
+ *
+ * @example
+ * async function* batchStream(): PullStream<number[]> {
+ *   yield [1, 2];
+ *   yield [3, 4];
+ * }
+ *
+ * for await (const value of flat(batchStream())) {
+ *   console.log(value); // 1, 2, 3, 4
+ * }
  */
 export async function* flat<T>(stream: PullStream<T[]>): PullStream<T> {
   for await (const batch of stream) {

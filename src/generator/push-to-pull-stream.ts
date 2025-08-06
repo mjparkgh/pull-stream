@@ -1,17 +1,17 @@
-import { PullStream } from '../types/pull-stream.js';
+import { PullStream } from '../core/pull-stream.js';
 
 type CallBack<T> = (error: unknown, data: T | null, isDone?: boolean) => void;
 
 /**
- * Push 방식의 스트림을 Pull 방식으로 변환하는 함수
+ * Function that converts push-style streams to pull-style streams.
  *
- * @template T - 스트림에서 처리할 데이터 타입
- * @param {function} params - 콜백 함수를 인자로 받는 함수
- * @param {boolean} [useStack=false] - 스택 방식으로 데이터를 처리할지 여부 (true: LIFO, false: FIFO)
- * @returns {PullStream<T>} 비동기 제너레이터
+ * @template T Data type to process in the stream
+ * @param params Function that takes a callback function as argument
+ * @param useStack Whether to process data in stack mode (true: LIFO, false: FIFO)
+ * @returns Async generator
  *
  * @example
- * // 예시: 이벤트 기반 API를 Pull 스트림으로 변환
+ * // Example: Convert event-based API to pull stream
  * const stream = pushToPullStream((callback) => {
  *   eventEmitter.on('data', (data) => callback(null, data));
  *   eventEmitter.on('error', (err) => callback(err, null));

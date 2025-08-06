@@ -8,5 +8,19 @@ export default defineConfig({
     globals: true,
     root: './',
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      include: ['**/src/**/*.ts'],
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/tests/**',
+        '**/*.spec.ts',
+        '**/*.d.ts',
+      ],
+      thresholds: {
+        lines: 85,
+      },
+    },
   },
 });

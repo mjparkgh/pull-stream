@@ -1,15 +1,25 @@
-import { PullStreamError } from './pull-stream-error.js';
+import { PullStreamError } from '../core/pull-stream-error.js';
 
 /**
- * 순환 배열 기반의 큐 구현체
+ * Circular array-based queue implementation.
  *
- * 이 큐는 내부적으로 2의 거듭제곱 크기를 가진 순환 배열을 사용하여
- * O(1)의 시간 복잡도로 enqueue와 dequeue 작업을 수행합니다.
+ * This queue uses a circular array with power-of-two size internally
+ * to perform enqueue and dequeue operations with O(1) time complexity.
  *
- * @template T - 큐에 저장될 요소의 타입
+ * @template T Type of elements stored in the queue
+ *
+ * @example
+ * const queue = new Queue<number>();
+ * queue.enqueue(1);
+ * queue.enqueue(2);
+ * queue.enqueue(3);
+ *
+ * while (!queue.isEmpty()) {
+ *   console.log(queue.dequeue()); // 1, 2, 3
+ * }
  */
 export class Queue<T> {
-  #MIN_SIZE: number = 32; // 최소 크기
+  #MIN_SIZE: number = 32;
 
   #queue: Array<T>;
   #front: number = 0;
@@ -17,8 +27,13 @@ export class Queue<T> {
   #mask: number;
 
   #calculateQueueSize(n: number): number {
-    return 1 << (31 - Math.clz32(n));
+    const lastOne = 1 << (31 - Math.clz32(n));
+    if (lastOne === n) {
+      return n;
+    }
+    return lastOne << 1;
   }
+
   constructor(initSize: number = 32) {
     const length = this.#calculateQueueSize(Math.max(initSize, this.#MIN_SIZE));
     this.#queue = new Array<T>(length);
@@ -26,10 +41,10 @@ export class Queue<T> {
   }
 
   /**
-   * 주어진 배열로부터 큐를 생성합니다.
+   * Creates a queue from the given array.
    *
-   * @param items - 큐에 초기화할 요소들의 배열
-   * @returns 생성된 큐 인스턴스
+   * @param items Array of elements to initialize the queue with
+   * @returns Created queue instance
    */
   static from<T>(items: T[]): Queue<T> {
     const queue = new Queue<T>(items.length + 1);
@@ -73,28 +88,28 @@ export class Queue<T> {
   }
 
   /**
-   * 큐가 비어있는지 확인합니다.
+   * Checks if the queue is empty.
    *
-   * @returns 큐가 비어있으면 true, 그렇지 않으면 false
+   * @returns True if the queue is empty, false otherwise
    */
   isEmpty(): boolean {
     return this.#front === this.#rear;
   }
 
   /**
-   * 큐에 저장된 항목의 개수를 반환합니다.
+   * Returns the number of items stored in the queue.
    *
-   * @returns 큐에 있는 항목의 개수
+   * @returns Number of items in the queue
    */
   get size(): number {
     return (this.#rear - this.#front + this.#queue.length) & this.#mask;
   }
 
   /**
-   * 큐의 끝에 새 요소를 추가합니다.
-   * 큐가 가득 찼을 경우 자동으로 크기가 확장됩니다.
+   * Adds a new element to the end of the queue.
+   * Automatically expands the queue size if it's full.
    *
-   * @param item - 추가할 요소
+   * @param item Element to add
    */
   enqueue(item: T): void {
     if (this.#isFull()) {
@@ -105,34 +120,33 @@ export class Queue<T> {
   }
 
   /**
-   * 여러 항목을 한 번에 큐에 추가합니다.
-   * 필요한 경우 큐의 크기를 자동으로 확장합니다.
+   * Adds multiple items to the queue at once.
+   * Automatically expands the queue size if needed.
    *
-   * @param items - 추가할 항목 배열
+   * @param items Array of items to add
    */
   batchEnqueue(items: T[]): void {
     const size = this.size;
     const availableSpace = this.#queue.length - size - 1;
 
     if (items.length > availableSpace) {
-      let newSize = this.#queue.length;
-      while (newSize - size - 1 < items.length) {
-        newSize <<= 1;
-      }
+      const newSize = this.#calculateQueueSize(
+        this.#queue.length + items.length - availableSpace,
+      );
       this.#resizeQueue(newSize);
     }
 
-    for (const item of items) {
-      this.#queue[this.#rear] = item;
+    for (let i = 0; i < items.length; i++) {
+      this.#queue[this.#rear] = items[i];
       this.#rear = (this.#rear + 1) & this.#mask;
     }
   }
   /**
-   * 큐에서 지정된 개수의 항목을 한 번에 제거하고 배열로 반환합니다.
+   * Removes the specified number of items from the queue at once and returns them as an array.
    *
-   * @param count - 제거할 항목 수
-   * @returns 제거된 항목들의 배열
-   * @throws {PullStreamError} 요청한 항목 수보다 큐에 있는 항목이 적을 경우 에러 발생
+   * @param count Number of items to remove
+   * @returns Array of removed items
+   * @throws {PullStreamError} If there are fewer items in the queue than requested
    */
   batchDequeue(count: number): T[] {
     const currSize = this.size;
@@ -144,12 +158,12 @@ export class Queue<T> {
       );
     }
 
-    const items: T[] = [];
+    const items: T[] = new Array<T>(count);
     for (let i = 0; i < count; i++) {
       const item = this.#queue[this.#front];
-      this.#queue[this.#front] = item;
+      this.#queue[this.#front] = null as unknown as T;
       this.#front = (this.#front + 1) & this.#mask;
-      items.push(item);
+      items[i] = item;
     }
 
     this.#shrinkQueueIfNeeded();
@@ -157,11 +171,11 @@ export class Queue<T> {
   }
 
   /**
-   * 큐의 앞에서 요소를 제거하고 반환합니다.
-   * 사용률이 낮을 경우 자동으로 큐의 크기를 줄입니다.
+   * Removes and returns an element from the front of the queue.
+   * Automatically shrinks the queue size if usage is low.
    *
-   * @returns 제거된 요소
-   * @throws {PullStreamError} 큐가 비어있을 경우 QUEUE_EMPTY 에러 발생
+   * @returns Removed element
+   * @throws {PullStreamError} If the queue is empty
    */
   dequeue(): T {
     if (this.isEmpty()) {
@@ -181,10 +195,10 @@ export class Queue<T> {
   }
 
   /**
-   * 큐의 맨 앞 항목을 제거하지 않고 조회합니다.
+   * Returns the front item of the queue without removing it.
    *
-   * @returns 큐의 맨 앞 항목
-   * @throws {PullStreamError} 큐가 비어있을 경우 에러 발생
+   * @returns Front item of the queue
+   * @throws {PullStreamError} If the queue is empty
    */
   peek(): T {
     if (this.isEmpty()) {
@@ -194,7 +208,7 @@ export class Queue<T> {
   }
 
   /**
-   * 큐의 모든 요소를 제거합니다.
+   * Removes all elements from the queue.
    */
   clear(): void {
     this.#front = 0;

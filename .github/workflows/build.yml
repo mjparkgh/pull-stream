@@ -24,8 +24,8 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       - run: npm ci
-      - run: npm test
-      
+      - run: npm run test:coverage
+
       - name: Update package version with commit hash
         if: github.ref != 'refs/heads/main'
         run: |

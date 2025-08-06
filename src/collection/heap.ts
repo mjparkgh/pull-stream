@@ -1,11 +1,24 @@
-import { PullStreamError } from './pull-stream-error.js';
+import { PullStreamError } from '../core/pull-stream-error.js';
 
 type Comparable = string | number;
 
 /**
- * Min Heap data structure implementation.
- * @template V - Type of value to store
- * @template K - Type of key for ordering (string or number)
+ * Implements a min-heap data structure.
+ * @template V Type of value to store
+ * @template K Type of key for ordering (string or number)
+ *
+ * @example
+ * // Create a min-heap for numbers
+ * const heap = Heap.create<number>();
+ * heap.push(5);
+ * heap.push(2);
+ * heap.push(8);
+ * heap.push(1);
+ *
+ * // Pop all items in order
+ * while (!heap.isEmpty()) {
+ *   console.log(heap.pop()); // 1, 2, 5, 8
+ * }
  */
 export class Heap<V, K extends Comparable = number> {
   #MIN_SIZE: number = 32;
@@ -13,24 +26,20 @@ export class Heap<V, K extends Comparable = number> {
   #size: number = 0;
   #buf: Array<[K, V]>;
 
-  /**
-   * Calculates the smallest power of two greater than or equal to n.
-   * @param n - Minimum required size
-   * @returns Calculated heap buffer size
-   */
   #getHeapSize(n: number): number {
     return 1 << (31 - Math.clz32(n));
   }
 
   /**
    * Creates a Heap instance.
-   * @param key - Function to extract ordering key from value
-   * @param initSize - Initial buffer size (default: MIN_SIZE)
+   * @param key Function to extract ordering key from value
+   * @param initSize Initial buffer size (default: MIN_SIZE)
    */
   constructor(key: (value: V) => K, initSize?: number) {
     const size = initSize ?? this.#MIN_SIZE;
-    this.#key = key;
     const length = this.#getHeapSize(Math.max(size + 1, this.#MIN_SIZE));
+
+    this.#key = key;
     this.#buf = new Array<[K, V]>(length);
     this.#buf[0] = null as unknown as [K, V];
     this.#size = 1;
@@ -38,8 +47,8 @@ export class Heap<V, K extends Comparable = number> {
 
   /**
    * Creates a Heap instance using the value itself as the key.
-   * @template V - Value type (must be Comparable)
-   * @param initSize - Initial buffer size (optional)
+   * @template V Value type (must be Comparable)
+   * @param initSize Initial buffer size (optional)
    * @returns New Heap instance
    */
   static create<V extends Comparable = number>(initSize?: number) {
@@ -48,8 +57,8 @@ export class Heap<V, K extends Comparable = number> {
 
   /**
    * Creates a Heap from an array, using the value itself as the key.
-   * @template V - Value type (must be Comparable)
-   * @param items - Initial items array
+   * @template V Value type (must be Comparable)
+   * @param items Initial items array
    * @returns New Heap instance
    */
   static with<V extends Comparable = number>(items: V[]): Heap<V, V> {
@@ -58,10 +67,10 @@ export class Heap<V, K extends Comparable = number> {
 
   /**
    * Creates a Heap from an array and key extractor function (heapify).
-   * @template V - Value type
-   * @template K - Key type (must be Comparable)
-   * @param items - Initial items array
-   * @param key - Function to extract ordering key from value
+   * @template V Value type
+   * @template K Key type (must be Comparable)
+   * @param items Initial items array
+   * @param key Function to extract ordering key from value
    * @returns New Heap instance
    * @throws {PullStreamError} If items is empty or not an array
    */
@@ -93,10 +102,6 @@ export class Heap<V, K extends Comparable = number> {
     return heap;
   }
 
-  /**
-   * Resizes the internal buffer.
-   * @param length - New buffer length
-   */
   #resize(length: number): void {
     const newbuf = new Array<[K, V]>(length);
     for (let i = 0; i < this.#size; i++) {
@@ -105,18 +110,12 @@ export class Heap<V, K extends Comparable = number> {
     this.#buf = newbuf;
   }
 
-  /**
-   * Expands the buffer if it is full.
-   */
   #extendIfNeeded(): void {
     if (this.#isFull()) {
       this.#resize(this.#buf.length << 1);
     }
   }
 
-  /**
-   * Shrinks the buffer if usage is low.
-   */
   #shrinkIfNeeded(): void {
     const halfSize = this.#buf.length >> 1;
     const quadSize = halfSize >> 1;
@@ -125,10 +124,6 @@ export class Heap<V, K extends Comparable = number> {
     }
   }
 
-  /**
-   * Checks if the buffer is full.
-   * @returns True if buffer is full
-   */
   #isFull(): boolean {
     return this.#size === this.#buf.length;
   }
@@ -150,7 +145,7 @@ export class Heap<V, K extends Comparable = number> {
 
   /**
    * Adds a new item to the heap.
-   * @param item - Item to add
+   * @param item Item to add
    */
   push(item: V): void {
     this.#extendIfNeeded();
@@ -177,10 +172,6 @@ export class Heap<V, K extends Comparable = number> {
     }
   }
 
-  /**
-   * Maintains heap property by shifting down from the given index.
-   * @param index - Start index
-   */
   #shiftDown(index: number): void {
     let i = index;
 

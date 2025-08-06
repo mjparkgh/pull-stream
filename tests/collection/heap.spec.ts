@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { Heap } from '../../src/utils/heap.js';
-import { PullStreamError } from '../../src/utils/pull-stream-error.js';
+import { Heap } from '../../src/collection/heap.js';
+import { PullStreamError } from '../../src/core/pull-stream-error.js';
 
 describe('Heap', () => {
   it('should be empty on creation', () => {
     const heap = Heap.create<number>();
-    expect(heap.isEmpty()).toBe(true);
-    expect(heap.size).toBe(0);
+    expect(heap.isEmpty()).toEqual(true);
+    expect(heap.size).toEqual(0);
   });
 
   it('should push and pop items in min order', () => {
@@ -17,14 +17,14 @@ describe('Heap', () => {
     heap.push(1);
     heap.push(3);
 
-    expect(heap.size).toBe(5);
-    expect(heap.peek()).toBe(1);
-    expect(heap.pop()).toBe(1);
-    expect(heap.pop()).toBe(2);
-    expect(heap.pop()).toBe(3);
-    expect(heap.pop()).toBe(5);
-    expect(heap.pop()).toBe(8);
-    expect(heap.isEmpty()).toBe(true);
+    expect(heap.size).toEqual(5);
+    expect(heap.peek()).toEqual(1);
+    expect(heap.pop()).toEqual(1);
+    expect(heap.pop()).toEqual(2);
+    expect(heap.pop()).toEqual(3);
+    expect(heap.pop()).toEqual(5);
+    expect(heap.pop()).toEqual(8);
+    expect(heap.isEmpty()).toEqual(true);
   });
 
   it('should throw error when pop on empty', () => {
@@ -69,8 +69,8 @@ describe('Heap', () => {
     heap.push(10);
     heap.push(20);
     heap.clear();
-    expect(heap.isEmpty()).toBe(true);
-    expect(heap.size).toBe(0);
+    expect(heap.isEmpty()).toEqual(true);
+    expect(heap.size).toEqual(0);
     expect(() => heap.peek()).toThrow(PullStreamError);
   });
 

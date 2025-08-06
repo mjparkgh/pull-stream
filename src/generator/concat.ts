@@ -1,4 +1,4 @@
-import { PullStream } from '../types/pull-stream.js';
+import { PullStream } from '../core/pull-stream.js';
 
 /**
  * Concatenates multiple pull streams into a single stream.

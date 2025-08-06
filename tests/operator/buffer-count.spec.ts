@@ -1,42 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { bufferCount } from '../../src/index.js';
+import { bufferCount } from '../../src/operator/buffer-count.js';
+import { from } from '../../src/generator/from.js';
 
 describe('bufferCount', () => {
-  it('지정된 개수만큼 항목을 묶어야 함', async () => {
-    const generator = async function* (): AsyncGenerator<number, void, void> {
-      await Promise.resolve();
-      for (let i = 1; i <= 7; i++) {
-        yield i;
-      }
-    };
-
-    const bufferedGenerator = bufferCount(generator(), 3);
-
-    const results = [];
-    for await (const batch of bufferedGenerator) {
+  it('should group items by the specified count', async () => {
+    const buffered = bufferCount(from(1, 2, 3, 4, 5, 6, 7), 3);
+    const results: number[][] = [];
+    for await (const batch of buffered) {
       results.push(batch);
     }
-
     expect(results).toEqual([[1, 2, 3], [4, 5, 6], [7]]);
   });
 
-  it('빈 스트림에 대해 아무것도 출력하지 않아야 함', async () => {
-    const emptyGenerator = async function* (): AsyncGenerator<
-      number,
-      void,
-      void
-    > {
-      await Promise.resolve();
-      yield* [];
-    };
-
-    const bufferedGenerator = bufferCount(emptyGenerator(), 2);
-
-    const results = [];
-    for await (const batch of bufferedGenerator) {
+  it('should output nothing for an empty stream', async () => {
+    const buffered = bufferCount<number>(from(), 2);
+    const results: number[][] = [];
+    for await (const batch of buffered) {
       results.push(batch);
     }
-
     expect(results).toEqual([]);
   });
 

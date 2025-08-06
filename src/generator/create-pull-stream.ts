@@ -1,18 +1,18 @@
-import { PullStream, PullStreamCallback } from '../types/pull-stream.js';
+import { PullStream, PullStreamCallback } from '../core/pull-stream.js';
 
 /**
- * 콜백 기반 API로부터 비동기 풀 스트림을 생성하는 함수
+ * Creates an async pull stream from a callback-based API.
  *
- * @template T - 입력 데이터 타입
- * @template R - 출력 데이터 타입
- * @param {PullStreamCallback<T, R>} cb - 각 단계의 데이터를 생성하는 콜백 함수
- * @returns {PullStream<R>} 생성된 스트림
+ * @template T Input data type
+ * @template R Output data type
+ * @param cb Callback function that generates data for each step
+ * @returns Generated stream
  *
  * @example
- * // 배열을 스트림으로 변환
+ * // Convert array to stream
  * const stream = createPullStream(input => {
  *   if (input === null) {
- *     // 초기 입력일 경우 첫 번째 항목 반환
+ *     // Return first item for initial input
  *     return { next: 0, data: myArray[0] };
  *   }
  *
@@ -20,7 +20,7 @@ import { PullStream, PullStreamCallback } from '../types/pull-stream.js';
  *   if (nextIndex < myArray.length) {
  *     return { next: nextIndex, data: myArray[nextIndex] };
  *   } else {
- *     // 더 이상 항목이 없을 경우 null 반환으로 종료
+ *     // Return null to end when no more items
  *     return { next: null, data: myArray[input] };
  *   }
  * });

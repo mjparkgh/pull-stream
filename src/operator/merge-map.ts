@@ -1,30 +1,26 @@
-import { Promisable } from '../types/promisable.js';
-import { PullStream, PullStreamResult } from '../types/pull-stream.js';
+import { Promisable } from '../core/promisable.js';
+import { PullStream, PullStreamResult } from '../core/pull-stream.js';
 
 /**
- * 여러 스트림을 병합하고 각 항목에 변환 함수를 적용하는 연산자
+ * Operator that merges multiple streams and applies a transformation function to each item.
  *
- * @template T - 입력 스트림의 데이터 타입
- * @template R - 출력 스트림의 데이터 타입
- * @param {PullStream<T> | PullStream<T>[]} stream - 단일 또는 여러 입력 스트림
- * @param {function} mapper - 각 항목을 변환하는 함수
- * @param {number} [count=10] - 동시에 처리할 최대 항목 수
- * @returns {PullStream<R>} 변환된 항목들의 병합된 스트림
+ * @template T Input stream data type
+ * @template R Output stream data type
+ * @param stream Single or multiple input streams
+ * @param mapper Function that transforms each item
+ * @param count Maximum number of items to process concurrently (default: 10)
+ * @returns Merged stream of transformed items
  *
  * @example
- * // 여러 스트림을 병합하고 변환
+ * // Merge multiple streams and transform
  * const combinedStream = mergeMap(
  *   [stream1, stream2, stream3],
  *   async item => {
  *     const result = await processItem(item);
  *     return result;
  *   },
- *   5 // 최대 5개 항목 동시 처리
+ *   5 // Process up to 5 items concurrently
  * );
- *
- * @remarks
- * 이 연산자는 여러 스트림의 항목을 동시에 처리할 수 있어 병렬 처리에 유용합니다.
- * count 매개변수로 동시성 수준을 제어할 수 있습니다.
  */
 export async function* mergeMap<T, R>(
   stream: PullStream<T>,

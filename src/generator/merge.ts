@@ -1,23 +1,19 @@
-import { PullStream } from '../types/pull-stream.js';
+import { PullStream } from '../core/pull-stream.js';
 
 /**
- * 여러 스트림을 단일 스트림으로 병합하여 동시 처리를 관리합니다
+ * Merges multiple streams into a single stream with concurrent processing management.
  *
- * @template T - 입력 스트림의 데이터 유형
- * @param {PullStream<T>[]} streamList - 병합할 입력 스트림 배열
- * @param {number} [count=10] - 동시에 처리할 최대 스트림 수
- * @returns {PullStream<T>} 모든 입력 스트림의 항목을 생성하는 단일 병합 스트림
+ * @template T Input stream data type
+ * @param streamList Array of input streams to merge
+ * @param count Maximum number of streams to process concurrently (default: 10)
+ * @returns Single merged stream that yields items from all input streams
  *
  * @example
- * // 여러 스트림 병합하기
+ * // Merge multiple streams
  * const combinedStream = merge(
  *   [stream1, stream2, stream3],
- *   5 // 최대 5개 스트림을 동시에 처리
+ *   5 // Process up to 5 streams concurrently
  * );
- *
- * @remarks
- * 이 연산자는 여러 스트림의 항목을 병렬 처리하는 데 유용합니다.
- * count 매개변수로 동시성 수준을 제어합니다.
  */
 export async function* merge<T>(
   streamList: PullStream<T>[],

@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { Queue } from '../../src/utils/queue.js';
-import { PullStreamError } from '../../src/utils/pull-stream-error.js';
+import { Queue } from '../../src/collection/queue.js';
+import { PullStreamError } from '../../src/core/pull-stream-error.js';
 
 describe('Queue', () => {
   it('should be empty on creation', () => {
     const queue = new Queue<number>();
-    expect(queue.isEmpty()).toBe(true);
-    expect(queue.size).toBe(0);
+    expect(queue.isEmpty()).toEqual(true);
+    expect(queue.size).toEqual(0);
   });
 
   it('should enqueue and dequeue items in FIFO order', () => {
@@ -14,12 +14,12 @@ describe('Queue', () => {
     queue.enqueue(1);
     queue.enqueue(2);
     queue.enqueue(3);
-    expect(queue.size).toBe(3);
-    expect(queue.peek()).toBe(1);
-    expect(queue.dequeue()).toBe(1);
-    expect(queue.dequeue()).toBe(2);
-    expect(queue.dequeue()).toBe(3);
-    expect(queue.isEmpty()).toBe(true);
+    expect(queue.size).toEqual(3);
+    expect(queue.peek()).toEqual(1);
+    expect(queue.dequeue()).toEqual(1);
+    expect(queue.dequeue()).toEqual(2);
+    expect(queue.dequeue()).toEqual(3);
+    expect(queue.isEmpty()).toEqual(true);
   });
 
   it('should throw error when dequeue on empty', () => {
@@ -36,14 +36,15 @@ describe('Queue', () => {
 
   it('should support batchEnqueue and batchDequeue', () => {
     const queue = new Queue<number>();
-    queue.batchEnqueue([10, 20, 30, 40]);
-    expect(queue.size).toBe(4);
-    const items = queue.batchDequeue(2);
-    expect(items).toEqual([10, 20]);
-    expect(queue.size).toBe(2);
-    const rest = queue.batchDequeue(2);
-    expect(rest).toEqual([30, 40]);
-    expect(queue.isEmpty()).toBe(true);
+    const first = Array.from({ length: 16 }, (_, i) => i + 1);
+    const second = Array.from({ length: 64 }, (_, i) => i + 1);
+    queue.batchEnqueue(first);
+    queue.batchEnqueue(second);
+    expect(queue.size).toEqual(80);
+    const items = queue.batchDequeue(50);
+    expect(items.length).toEqual(50);
+    expect(items).toEqual(first.concat(second.slice(0, 34)));
+    expect(queue.size).toEqual(30);
   });
 
   it('should throw error on batchDequeue underflow', () => {
@@ -57,19 +58,19 @@ describe('Queue', () => {
 
   it('should create a queue from array', () => {
     const queue = Queue.from([5, 6, 7]);
-    expect(queue.size).toBe(3);
-    expect(queue.dequeue()).toBe(5);
-    expect(queue.dequeue()).toBe(6);
-    expect(queue.dequeue()).toBe(7);
-    expect(queue.isEmpty()).toBe(true);
+    expect(queue.size).toEqual(3);
+    expect(queue.dequeue()).toEqual(5);
+    expect(queue.dequeue()).toEqual(6);
+    expect(queue.dequeue()).toEqual(7);
+    expect(queue.isEmpty()).toEqual(true);
   });
 
   it('should clear the queue', () => {
     const queue = new Queue<number>();
     queue.enqueue(100);
     queue.clear();
-    expect(queue.isEmpty()).toBe(true);
-    expect(queue.size).toBe(0);
+    expect(queue.isEmpty()).toEqual(true);
+    expect(queue.size).toEqual(0);
     expect(() => queue.peek()).toThrow(PullStreamError);
   });
 });
